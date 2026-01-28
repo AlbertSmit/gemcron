@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "gtm-session-start",
+            "type": "command",
+            "command": "$GEMINI_PROJECT_DIR/hooks/session-start.sh",
+            "description": "Inject task context from Gemini Task Manager"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "gtm-notification",
+            "type": "command",
+            "command": "$GEMINI_PROJECT_DIR/hooks/notification.sh",
+            "description": "Log notifications during scheduled tasks"
+          }
+        ]
+      }
+    ]
+  }
+}
