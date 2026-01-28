@@ -1,103 +1,153 @@
-# Gemini Task Manager
+<p align="center">
+  <img src="https://img.shields.io/badge/⚡-gemcron-FF8C00?style=for-the-badge&labelColor=1a1a1a" alt="gemcron" />
+</p>
 
-A Terminal UI built with [Ink](https://github.com/vadimdemedes/ink) to manage scheduled tasks that run with Gemini CLI.
+<h1 align="center">
+  ⚡ gemcron
+</h1>
 
-## Features
+<p align="center">
+  <strong>Gemini CLI Cron</strong><br/>
+  <sub>Schedule and automate AI-powered tasks from your terminal</sub>
+</p>
 
-- 📋 Manage scheduled tasks with cron expressions
-- 🔄 Integrates with system crontab for reliable execution
-- 🎯 Pre-built templates (Rollbar checks, code review, standup prep)
-- 🪝 Gemini CLI hooks for context injection
+<p align="center">
+  <img src="https://img.shields.io/badge/node-%3E%3D18-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Ink-5.0-1a1a1a?style=flat-square" alt="Ink" />
+  <img src="https://img.shields.io/badge/Gemini_CLI-0.26+-E07700?style=flat-square" alt="Gemini CLI" />
+</p>
 
-## Quick Start
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---------|-------------|
+| 🎨 **Beautiful TUI** | Bubbletea-inspired interface with orange theme |
+| ⏰ **Natural Language Schedules** | Type "every weekday at 9am" - Gemini converts it |
+| � **Task Sequences** | Run tasks multiple times: `gemcron run "task" --runs=5` |
+| 📋 **Templates** | Pre-built tasks for Rollbar, code review, standups |
+| 🪝 **Gemini Hooks** | Context injection for smarter AI responses |
+| 🗓️ **System Cron** | Reliable scheduling via native crontab |
+
+---
+
+## 🚀 Quick Start
 
 ```bash
-# Install dependencies
+# Clone and install
+git clone https://github.com/AlbertSmit/gemcron.git
+cd gemcron
 npm install
 
-# Run setup (adds 'gemcron' alias to ~/.zshrc)
+# Setup (adds 'gemcron' alias)
 ./setup.sh
+source ~/.zshrc
 
-# Launch the UI
-npm run dev
-# or after setup:
+# Launch
 gemcron
 ```
 
-## Usage
+---
 
-### Interactive UI
+## 🎮 Usage
 
-Launch the terminal UI to manage tasks:
+### Interactive Mode
 
 ```bash
 gemcron
 ```
 
-**Keyboard shortcuts:**
-- `j/k` or `↑/↓` - Navigate tasks
-- `n` - Create new task
-- `e` - Edit selected task
-- `d` - Delete selected task
-- `Enter` - View task details
-- `q` - Quit
+| Key | Action |
+|-----|--------|
+| `↑/k` `↓/j` | Navigate |
+| `↵` | View details |
+| `n` | New task |
+| `e` | Edit |
+| `d` | Delete |
+| `r` | Run now |
+| `q` | Quit |
 
-### Run a Task Manually
+### Run Tasks
 
 ```bash
+# Single run
 gemcron run "Daily Rollbar Check"
+
+# Multiple runs
+gemcron run "Fix Bugs" --runs=5
 ```
 
-### Task Templates
+---
 
-Built-in templates to get started quickly:
+## 📦 Built-in Templates
 
-1. **Daily Rollbar Check** - Check for new errors using MCP Rollbar tools
-2. **Weekly Code Review** - Analyze git commits and suggest improvements
-3. **Daily Standup Prep** - Generate standup notes from git activity
+| Template | Description |
+|----------|-------------|
+| 🐛 **Daily Rollbar Check** | Scan for new errors with MCP tools |
+| 📝 **Weekly Code Review** | Analyze commits, suggest improvements |
+| 🗣️ **Standup Prep** | Generate notes from git activity |
 
-## Configuration
+---
 
-Tasks are stored in `~/.gemini-tasks/tasks.json`
-
-Logs are stored in `~/.gemini-tasks/logs/`
-
-### Gemini CLI Hooks
-
-The project includes hooks that integrate with Gemini CLI:
-
-- **SessionStart** - Injects task context when running scheduled tasks
-- **Notification** - Logs tool permission requests
-
-Hooks are configured in `.gemini/settings.json` and require Gemini CLI v0.26.0+.
-
-## Project Structure
+## ⚙️ Configuration
 
 ```
-gemini-task-manager/
+~/.gemini-tasks/
+├── tasks.json    # Your scheduled tasks
+└── logs/         # Execution history
+```
+
+### Natural Language → Cron
+
+When creating a task, just describe when you want it to run:
+
+```
+"every weekday at 9am"     → 0 9 * * 1-5
+"every hour"               → 0 * * * *
+"monday at 8:30am"         → 30 8 * * 1
+"first day of month"       → 0 0 1 * *
+```
+
+---
+
+## 🪝 Gemini CLI Hooks
+
+Hooks inject context when tasks run:
+
+| Hook | Purpose |
+|------|---------|
+| `SessionStart` | Inject task metadata & previous logs |
+| `Notification` | Log tool permission requests |
+
+> Requires Gemini CLI v0.26.0+
+
+---
+
+## 🏗️ Project Structure
+
+```
+gemcron/
 ├── src/
-│   ├── cli.tsx           # CLI entry point
-│   ├── App.tsx           # Main React component
-│   ├── runner.ts         # Task execution script
-│   ├── types.ts          # TypeScript interfaces
-│   ├── components/
-│   │   ├── TaskList.tsx
-│   │   ├── TaskEditor.tsx
-│   │   └── TaskDetails.tsx
-│   ├── services/
-│   │   ├── storage.ts    # JSON persistence
-│   │   ├── scheduler.ts  # Cron parsing
-│   │   └── cron.ts       # System crontab management
-│   └── templates/
-│       └── index.ts      # Task templates
-├── hooks/
-│   ├── session-start.sh
-│   └── notification.sh
-├── .gemini/
-│   └── settings.json     # Hook configuration
-└── setup.sh              # Installation script
+│   ├── cli.tsx           # Entry point
+│   ├── App.tsx           # Main UI
+│   ├── theme.ts          # Color palette
+│   ├── components/       # UI components
+│   ├── services/         # Storage, cron, scheduler
+│   └── templates/        # Task templates
+├── hooks/                # Gemini CLI hooks
+└── setup.sh              # Installation
 ```
 
-## License
+---
 
-MIT
+## 📄 License
+
+MIT © [Albert Smit](https://github.com/AlbertSmit)
+
+---
+
+<p align="center">
+  <sub>Built with 🧡 and <a href="https://github.com/vadimdemedes/ink">Ink</a></sub>
+</p>
