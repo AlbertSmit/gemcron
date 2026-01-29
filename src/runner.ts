@@ -13,23 +13,42 @@ import {
   updateTaskStatus,
   appendTaskLog,
 } from './services/storage.js';
+import { prepareSandbox } from './services/sandbox.js';
+import { loadConfig } from './services/config.js';
+import { notifyTaskStart, notifyTaskComplete, notifyTaskFailed } from './services/notify.js';
 import type { Task, TaskLog } from './types.js';
+
+interface RunGeminiOptions {
+  cwd?: string;
+  useSandboxFlag?: boolean;
+}
 
 /**
  * Run Gemini CLI with the given prompt
  */
-async function runGemini(prompt: string): Promise<string> {
+async function runGemini(prompt: string, options: RunGeminiOptions = {}): Promise<string> {
   return new Promise((resolve, reject) => {
     const args = ['-p', prompt];
+    
+    // Add yolo flag for non-interactive execution (auto-approve all tools)
+    args.unshift('--yolo');
+    
+    // Add sandbox flag if configured
+    if (options.useSandboxFlag) {
+      args.unshift('-s');
+    }
 
-    // Set environment variable to indicate we're running from task manager
+    // Set environment variables for non-interactive execution
     const env = {
       ...process.env,
       GEMINI_TASK_MANAGER: '1',
+      CI: 'true',           // Suppress interactive prompts in many tools
+      NONINTERACTIVE: '1',  // Another common non-interactive flag
     };
 
     const child = spawn('gemini', args, {
       env,
+      cwd: options.cwd,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -80,8 +99,32 @@ export async function runTask(idOrName: string): Promise<string> {
   try {
     console.log(`[gemcron] Running task: ${task.name}`);
     console.log(`[gemcron] Prompt: ${task.prompt.slice(0, 100)}...`);
+    
+    // Send start notification
+    await notifyTaskStart(task.name);
 
-    const output = await runGemini(task.prompt);
+    // Prepare sandbox if enabled
+    let cwd: string | undefined;
+    if (task.useSandbox && task.repoPath) {
+      console.log(`[gemcron] Preparing sandbox for ${task.repoPath}...`);
+      cwd = await prepareSandbox(task);
+      console.log(`[gemcron] Running in sandbox: ${cwd}`);
+    }
+
+    // SECURITY: Always use Gemini's -s sandbox flag when running in our git sandbox
+    // This restricts writes to only the sandbox directory, making --yolo safe
+    // The -s flag is also used for non-sandbox tasks if config.useGeminiSandbox is true
+    const config = await loadConfig();
+    const useGeminiSandbox = task.useSandbox || config.useGeminiSandbox;
+    
+    if (task.useSandbox) {
+      console.log('[gemcron] Security: Gemini sandbox enabled (writes restricted to sandbox dir)');
+    }
+    
+    const output = await runGemini(task.prompt, {
+      cwd,
+      useSandboxFlag: useGeminiSandbox,
+    });
     const duration = Date.now() - startTime;
 
     // Update status to success
@@ -98,6 +141,10 @@ export async function runTask(idOrName: string): Promise<string> {
     await appendTaskLog(log);
 
     console.log(`[gemcron] Task completed in ${duration}ms`);
+    
+    // Send success notification
+    await notifyTaskComplete(task.name, duration);
+    
     return output;
   } catch (err) {
     const duration = Date.now() - startTime;
@@ -117,6 +164,10 @@ export async function runTask(idOrName: string): Promise<string> {
     await appendTaskLog(log);
 
     console.error(`[gemcron] Task failed: ${errorMessage}`);
+    
+    // Send failure notification
+    await notifyTaskFailed(task.name, errorMessage);
+    
     throw err;
   }
 }

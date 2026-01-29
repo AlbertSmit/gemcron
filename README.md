@@ -26,10 +26,12 @@
 |---------|-------------|
 | 🎨 **Beautiful TUI** | Bubbletea-inspired interface with orange theme |
 | ⏰ **Natural Language Schedules** | Type "every weekday at 9am" - Gemini converts it |
-| � **Task Sequences** | Run tasks multiple times: `gemcron run "task" --runs=5` |
+| 🔄 **Task Sequences** | Run tasks multiple times: `gemcron run "task" --runs=5` |
 | 📋 **Templates** | Pre-built tasks for Rollbar, code review, standups |
 | 🪝 **Gemini Hooks** | Context injection for smarter AI responses |
 | 🗓️ **System Cron** | Reliable scheduling via native crontab |
+| 🔒 **Git Sandbox** | Isolate tasks in fresh repo clones (case-sensitive path support) |
+| 🔔 **macOS Notifications** | Get notified when tasks start, complete, or fail |
 
 ---
 
@@ -95,9 +97,35 @@ gemcron run "Fix Bugs" --runs=5
 
 ```
 ~/.gemini-tasks/
+├── config.json   # Global settings
 ├── tasks.json    # Your scheduled tasks
-└── logs/         # Execution history
+├── logs/         # Execution history
+└── sandboxes/    # Git sandbox directories (if used)
 ```
+
+### config.json
+
+```json
+{
+  "sandboxBasePath": "/Volumes/Development/.gemcron-sandboxes",
+  "useGeminiSandbox": false,
+  "notifications": true
+}
+```
+
+| Option | Description |
+|--------|-------------|
+| `sandboxBasePath` | Where to clone repos (use case-sensitive volume if needed) |
+| `useGeminiSandbox` | Enable Gemini's `-s` security sandbox for all tasks |
+| `notifications` | Send macOS notifications for task progress |
+
+### Git Sandbox Mode
+
+When editing a task, enable **Use Sandbox** to:
+1. Clone your repo fresh from remote origin
+2. Run tasks in an isolated directory
+3. Auto-install dependencies (`yarn`/`npm`/`pnpm`)
+4. Enforce Gemini's security sandbox (restricts file writes)
 
 ### Natural Language → Cron
 

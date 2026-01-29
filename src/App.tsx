@@ -19,6 +19,7 @@ export function App() {
 
   useInput((input, key) => {
     if (input === 'q' && view === 'list') {
+      console.clear();
       exit();
     }
     if (key.escape) {
